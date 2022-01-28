@@ -1,25 +1,80 @@
 version: 2.1
+orbs:
+  gcp-gke: circleci/gcp-gke@1.1.0
+  gcr: circleci/gcp-gcr@0.0.2
+  slack: circleci/slack@4.1
 
 jobs:
-  build:
-    working_directory: ~/circleci-python
-    docker:
-      - image: "circleci/python:3.6.4"
+  Build-Push-Image-Docker:
+    description: Build and push image to Google Container Registry
+    machine: true
     steps:
       - checkout
-      - run: python3 main.py
-  test:
-    working_directory: ~/circleci-python
-    docker:
-      - image: "circleci/python:3.6.4"
+      - gcr/gcr-auth
+      - run:
+          name: Build Docker Image
+          command: |
+            docker build -t asia.gcr.io/socket-stg-327511/baas-boilerplate:v1 .
+      - run:
+          name: Push image to GCR
+          command: |
+            docker push asia.gcr.io/socket-stg-327511/baas-boilerplate:v1
+
+  Deploy-to-GKE:
+    description: Deploy application to Google Kubernetes Engine
+    machine: true
     steps:
-      - checkout
-      - run: python3 main-test.py
+      # Install `gcloud` and `kubectl` if not already installed.
+      - gcp-gke/install
+      # Initialize the `gcloud` CLI.
+      - gcp-gke/update-kubeconfig-with-credentials:
+          cluster: socket-stg-327511
+          perform-login: true
+
+      - add_ssh_keys:
+          fingerprints:
+            - ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEuV5oCHIyWoV3p9ZrOm8jXsXFjDspckfv9ZNnf3BG01LruSkGnaUDAgwquFXv6QCGMevAsX3P/mwX+qjMzEkNw= google-ssh {"userName":"nishant@whozzat.com","expireOn":"2022-01-23T07:49:40+0000"} 
 
 workflows:
-  build_and_test:
+  Build_Deploy_Dev:
     jobs:
-      - build
-      - test:
+      - Build-Push-Image-Docker:
+          filters:
+            branches:
+              only:
+                - main
+          context:
+            - gke-dev
+            - baas-boilerplate
+
+      - Deploy-to-GKE:
           requires:
-            - build
+            - Build-Push-Image-Docker
+          filters:
+            branches:
+              only:
+                - master
+          context:
+            - gke-dev
+            - baas-boilerplate
+
+    jobs:
+      - Build-Push-Image-Docker:
+          filters:
+            branches:
+              only:
+                - prod
+          context:
+            - prod
+            - baas-boilerplate
+
+      - Deploy-to-GKE:
+          requires:
+            - Build-Push-Image-Docker
+          filters:
+            branches:
+              only:
+                - prod
+          context:
+            - prod
+            - baas-boilerplate
