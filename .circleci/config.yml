@@ -20,7 +20,7 @@ jobs:
             docker push asia.gcr.io/socket-stg-327511/baas-boilerplate:v1
       - gcp-gke/install
       - gcp-gke/update-kubeconfig-with-credentials:
-          cluster: $GOOGLE_CLUSTER_ID
+          cluster: socket-stg-32751
           perform-login: true
       - run:
           name: Set Image
@@ -31,4 +31,4 @@ workflows:
     jobs:
       - Build-Push-Image-Docker:
           context:
-            - <context-name>
+            - bass-boilerplate
