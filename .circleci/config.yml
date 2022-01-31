@@ -3,7 +3,6 @@ orbs:
   gcp-gke: circleci/gcp-gke@1.1.0
   gcr: circleci/gcp-gcr@0.0.2
   slack: circleci/slack@4.1
-
 jobs:
   Build-Push-Image-Docker:
     description: Build and push image to Google Container Registry
@@ -19,42 +18,17 @@ jobs:
           name: Push image to GCR
           command: |
             docker push asia.gcr.io/socket-stg-327511/baas-boilerplate:v1
-
-  Deploy-to-GKE:
-    description: Deploy application to Google Kubernetes Engine
-    machine: true
-    steps:
-      # Install `gcloud` and `kubectl` if not already installed.
       - gcp-gke/install
-      # Initialize the `gcloud` CLI.
       - gcp-gke/update-kubeconfig-with-credentials:
-          cluster: socket-stg-327511
+          cluster: $GOOGLE_CLUSTER_ID
           perform-login: true
-
-      - add_ssh_keys:
-          fingerprints:
-            - ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEuV5oCHIyWoV3p9ZrOm8jXsXFjDspckfv9ZNnf3BG01LruSkGnaUDAgwquFXv6QCGMevAsX3P/mwX+qjMzEkNw= google-ssh {"userName":"nishant@whozzat.com","expireOn":"2022-01-23T07:49:40+0000"} 
-  
-
+      - run:
+          name: Set Image
+          command: |
+            kubectl set image deployment/baas-boilerplate baas-boilerplate=asia.gcr.io/socket-stg-327511/baas-boilerplate:<< 5432 >> -n viasocket
 workflows:
-  Build_Deploy_Dev:
+  Build_Deploy:
     jobs:
       - Build-Push-Image-Docker:
-          filters:
-            branches:
-              only:
-                - main
           context:
-            - gke-dev
-            - baas-boilerplate
-
-      - Deploy-to-GKE:
-          requires:
-            - Build-Push-Image-Docker
-          filters:
-            branches:
-              only:
-                - main
-          context:
-            - gke-dev
-            - baas-boilerplate
+            - <context-name>
