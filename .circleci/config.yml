@@ -25,7 +25,7 @@ jobs:
       - run:
           name: Set Image
           command: |
-            kubectl set image deployment/baas-boilerplate baas-boilerplate=asia.gcr.io/socket-stg-327511/baas-boilerplate:<< 5432 >> -n viasocket
+            kubectl set image deployment/baas-boilerplate baas-boilerplate=asia.gcr.io/socket-stg-327511/baas-boilerplate:<< pipeline.number >> -n viasocket
 workflows:
   Build_Deploy:
     jobs:
