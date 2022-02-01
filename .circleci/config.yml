@@ -7,7 +7,7 @@ jobs:
   Build-Push-Image-Docker:
     description: Build and push image to Google Container Registry
     machine:
-      image: ubuntu-2004:202111-02 - Ubuntu 20.04, Docker v20.10.11, Docker Compose v1.29.2, log4j updates
+      image: ubuntu-1604:202104-01 - Ubuntu 16.04, Docker v19.03.15, Docker Compose v1.29.1, final release by CircleCI
     steps:
       - checkout
       - gcr/gcr-auth
