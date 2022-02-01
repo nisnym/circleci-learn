@@ -32,4 +32,4 @@ workflows:
     jobs:
       - Build-Push-Image-Docker:
           context:
-            - bass-boilerplate
+            - task-3
