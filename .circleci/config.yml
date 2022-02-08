@@ -1,7 +1,6 @@
 version: 2.1
 orbs:
   gcp-gke: circleci/gcp-gke@1.1.0
-  gcp-cli: circleci/gcp-cli@1.0.0
   gcr: circleci/gcp-gcr@0.0.2
   slack: circleci/slack@4.1
 jobs:
